@@ -6,9 +6,10 @@
 
 ################################################################################
 from datetime import datetime
-import urllib
+import urllib.request
 import socket
-import simplejson as json
+import json
+import logging
 
 ################################################################################
 # Globals
@@ -134,11 +135,12 @@ class Plugin(indigo.PluginBase):
 			self.errorLog(u"Go To Channel action misconfigured")
 		else:
 			try:
-				f = urllib.urlopen("http://%s:8080/tv/tune?major=%s&minor=%s&clientAddr=%s" % (address, channel, minor, clientMAC))
+				url = "http://%s:8080/tv/tune?major=%s&minor=%s&clientAddr=%s" % (address, channel, minor, clientMAC)
+				f = urllib.request.urlopen(url).read().decode('utf8')
 				reply = json.load(f)
 				statusCode = int(reply['status']['code'])
 				if statusCode != 200:
 					self.errorLog(u"Go To Channel action failed with status code: %i message: %s" % (statusCode,reply['status']['msg']))
 			except:
 				self.errorLog(u"Go To Channel action failed with a network error - check your DVR to make sure it's on")
-	
+
