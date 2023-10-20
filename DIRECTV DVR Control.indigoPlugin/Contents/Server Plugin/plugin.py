@@ -6,7 +6,7 @@
 
 ################################################################################
 from datetime import datetime
-import urllib.request
+import urllib.request, urllib.error
 import socket
 import json
 import logging
@@ -71,7 +71,7 @@ class Plugin(indigo.PluginBase):
 		# when the plugin is asked to quit and it also allows us to get the output from the script
 		# to insert into the variable if it's configured that way
 		self.runningScripts = list()
-		self.debug = True
+		self.debug = False
 		socket.setdefaulttimeout(5.0)
 	
 	########################################
@@ -119,14 +119,15 @@ class Plugin(indigo.PluginBase):
 				url = "http://%s:8080/remote/processKey?key=%s&clientAddr=%s" % (address, key, clientMAC)
 				self.logger.debug(f"Using URL:\n {url}")
 				f = urllib.request.urlopen(url).read().decode('utf8')
-				reply = json.load(f)
-				self.logger.debug(f"{reply=}")
-				statusCode = int(reply['status']['code'])
-				if statusCode != 200:
-					self.errorLog(u"Send key press action failed with status code: %i message: %s (probably an incorrect key name: '%s')" % (statusCode,reply['status']['msg'],key))
+				#reply = json.load(f)
+
+			except urllib.error.URLError as e:
+				self.errorLog(f"Send key press action failed with message: {e.reason}")
+			except urllib.error.HTTPError as e:
+				self.errorLog(f"Send key press action failed with status code: {e.code}")
 			except:
 				self.errorLog(u"Send key press action failed with a network error - check your DVR to make sure it's on")
-				self.logger.exception("Exception:")
+
 	########################################
 	def setChannel(self, action):
 		address = action.props.get('address',"")
@@ -140,11 +141,13 @@ class Plugin(indigo.PluginBase):
 			try:
 				url = "http://%s:8080/tv/tune?major=%s&minor=%s&clientAddr=%s" % (address, channel, minor, clientMAC)
 				f = urllib.request.urlopen(url).read().decode('utf8')
-				reply = json.load(f)
-				statusCode = int(reply['status']['code'])
-				if statusCode != 200:
-					self.errorLog(u"Go To Channel action failed with status code: %i message: %s" % (statusCode,reply['status']['msg']))
+				#reply = json.load(f)
+
+			except urllib.error.URLError as e:
+				self.errorLog(f"Send key press action failed with status code:  {e.reason}")
+			except urllib.error.HTTPError as e:
+				self.errorLog(f"Send key press action failed with status code: {e.code}")
 			except:
-				self.errorLog(u"Go To Channel action failed with a network error - check your DVR to make sure it's on")
+				self.errorLog(u"Send key press action failed with a network error - check your DVR to make sure it's on")
 
 
