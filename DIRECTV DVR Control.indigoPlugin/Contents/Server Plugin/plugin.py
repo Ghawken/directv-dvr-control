@@ -71,7 +71,7 @@ class Plugin(indigo.PluginBase):
 		# when the plugin is asked to quit and it also allows us to get the output from the script
 		# to insert into the variable if it's configured that way
 		self.runningScripts = list()
-		self.debug = False
+		self.debug = True
 		socket.setdefaulttimeout(5.0)
 	
 	########################################
@@ -117,14 +117,16 @@ class Plugin(indigo.PluginBase):
 		else:
 			try:
 				url = "http://%s:8080/remote/processKey?key=%s&clientAddr=%s" % (address, key, clientMAC)
+				self.logger.debug(f"Using URL:\n {url}")
 				f = urllib.request.urlopen(url).read().decode('utf8')
 				reply = json.load(f)
+				self.logger.debug(f"{reply=}")
 				statusCode = int(reply['status']['code'])
 				if statusCode != 200:
 					self.errorLog(u"Send key press action failed with status code: %i message: %s (probably an incorrect key name: '%s')" % (statusCode,reply['status']['msg'],key))
 			except:
 				self.errorLog(u"Send key press action failed with a network error - check your DVR to make sure it's on")
-		
+				self.logger.exception("Exception:")
 	########################################
 	def setChannel(self, action):
 		address = action.props.get('address',"")
@@ -144,4 +146,5 @@ class Plugin(indigo.PluginBase):
 					self.errorLog(u"Go To Channel action failed with status code: %i message: %s" % (statusCode,reply['status']['msg']))
 			except:
 				self.errorLog(u"Go To Channel action failed with a network error - check your DVR to make sure it's on")
+
 
