@@ -116,7 +116,8 @@ class Plugin(indigo.PluginBase):
 			self.errorLog(u"Key Press action misconfigured, no key sent")
 		else:
 			try:
-				f = urllib.urlopen("http://%s:8080/remote/processKey?key=%s&clientAddr=%s" % (address, key, clientMAC))
+				url = "http://%s:8080/remote/processKey?key=%s&clientAddr=%s" % (address, key, clientMAC)
+				f = urllib.request.urlopen(url).read().decode('utf8')
 				reply = json.load(f)
 				statusCode = int(reply['status']['code'])
 				if statusCode != 200:
